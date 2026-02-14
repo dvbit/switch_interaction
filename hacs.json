@@ -1,1 +1,6 @@
-
+{
+  "name": "Switch Interaction Tracker",
+  "render_readme": true,
+  "homeassistant": "2026.02.0",
+  "iot_class": "local_polling"
+}
