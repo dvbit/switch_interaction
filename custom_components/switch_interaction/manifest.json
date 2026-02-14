@@ -10,6 +10,6 @@
   "icon": "mdi:gesture-tap",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "requirements": [],
+  "requirements": []
 }
-{
+
