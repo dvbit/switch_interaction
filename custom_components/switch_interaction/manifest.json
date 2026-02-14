@@ -1,7 +1,7 @@
 {
   "domain": "switch_interaction",
   "name": "Switch Interaction Tracker",
-  "codeowners": [@dvbit],
+  "codeowners": ["@dvbit"],
   "config_flow": true,
   "dependencies": [],
   "documentation": "",
