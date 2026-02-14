@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configura Switch Interaction Tracker",
+        "description": "Seleziona le entità da monitorare e il tempo massimo per il conteggio dei click.",
+        "data": {
+          "entities": "Entità da monitorare",
+          "maxtime": "Tempo massimo per conteggio click (secondi)"
+        }
+      }
+    },
+    "error": {
+      "no_entities": "Devi selezionare almeno un'entità"
+    },
+    "abort": {
+      "already_configured": "Questa configurazione esiste già"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opzioni Switch Interaction Tracker",
+        "description": "Modifica le entità monitorate e le impostazioni.",
+        "data": {
+          "entities": "Entità da monitorare",
+          "maxtime": "Tempo massimo per conteggio click (secondi)"
+        }
+      }
+    }
+  }
+}
