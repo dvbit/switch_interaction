@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Switch Interaction Tracker",
-        "description": "Select the entities to monitor and the maximum time for click counting.",
+        "description": "Select the  entities to monitor and the maximum time for click counting.",
         "data": {
           "entities": "Entities to monitor",
           "maxtime": "Max time for click counting (seconds)"
