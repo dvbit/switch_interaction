@@ -21,11 +21,13 @@ DOMAIN = "switch_interaction_sensor"
 # ---------------------------------------------------------------------------
 CONF_ENTITY_ID = "entity_id"   # switch.* or light.* entity to monitor
 CONF_MAX_TIME = "max_time"     # click-counting window in seconds
+CONF_NAME = "name"             # user-chosen name for the binary sensor
 
 # ---------------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------------
 DEFAULT_MAX_TIME = 3  # seconds — time window for multi-click detection
+DEFAULT_NAME_PREFIX = "int_"  # prefix for auto-generated sensor name
 
 # ---------------------------------------------------------------------------
 # Interaction type labels — exposed via extra_state_attributes
@@ -37,7 +39,7 @@ DEFAULT_MAX_TIME = 3  # seconds — time window for multi-click detection
 #   | Physical    | None      | None    |  ← hardware toggle
 #   | Automation  | set       | None    |  ← triggered by an automation
 #   | UI          | None      | set     |  ← dashboard / companion app
-#   | Unknown     | —         | —       |  ← reset / initial state
+#   | Unknown     | —         | —       |  ← initial state (no interaction yet)
 #
 # Ref: https://data.home-assistant.io/docs/context/
 # Ref: https://community.home-assistant.io/t/400352/8

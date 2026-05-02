@@ -12,6 +12,16 @@
           "entity_id": "L'entità switch o light da tracciare.",
           "max_time": "Tempo massimo (secondi) tra i click per considerarli come multi-click."
         }
+      },
+      "name": {
+        "title": "Nome del sensore",
+        "description": "Scegli un nome per il sensore binario.",
+        "data": {
+          "name": "Nome del sensore"
+        },
+        "data_description": {
+          "name": "Nome per l'entità binary sensor."
+        }
       }
     },
     "error": {

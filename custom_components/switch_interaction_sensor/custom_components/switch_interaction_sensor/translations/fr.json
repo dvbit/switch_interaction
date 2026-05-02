@@ -12,6 +12,16 @@
           "entity_id": "L'entité switch ou light à suivre.",
           "max_time": "Temps maximum (secondes) entre les clics pour compter comme multi-clic."
         }
+      },
+      "name": {
+        "title": "Nom du capteur",
+        "description": "Choisissez un nom pour le capteur binaire.",
+        "data": {
+          "name": "Nom du capteur"
+        },
+        "data_description": {
+          "name": "Nom de l'entité binary sensor."
+        }
       }
     },
     "error": {

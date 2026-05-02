@@ -12,6 +12,16 @@
           "entity_id": "The switch or light entity to track.",
           "max_time": "Maximum time (seconds) between clicks to count as multi-click."
         }
+      },
+      "name": {
+        "title": "Sensor Name",
+        "description": "Choose a name for the binary sensor.",
+        "data": {
+          "name": "Sensor name"
+        },
+        "data_description": {
+          "name": "Name for the binary sensor entity."
+        }
       }
     },
     "error": {

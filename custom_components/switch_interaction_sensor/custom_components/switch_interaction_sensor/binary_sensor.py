@@ -3,40 +3,42 @@ Binary sensor platform for Switch Interaction Sensor.
 
 Creates a single binary_sensor entity per config entry that:
 
-  • Listens to state_changed events on the monitored switch/light
-  • Counts consecutive toggles within a configurable time window
-  • Decodes the interaction source (Physical / Automation / UI)
+  - Listens to state_changed events on the monitored switch/light
+  - Counts consecutive toggles within a configurable time window
+  - Decodes the interaction source (Physical / Automation / UI)
     from the event's context object
-  • Resolves the HA user name when the toggle comes from the UI
+  - Resolves the HA user name when the toggle comes from the UI
 
 State:
   on  — at least one click registered (window still open)
-  off — idle (window expired, counters reset)
+  off — idle (window expired)
+
+IMPORTANT: Attributes are PERSISTENT — they always reflect the LAST
+interaction and are never reset.  They update only on the next toggle.
 
 Extra state attributes:
-  click_count      (int)    — toggles since window opened
+  click_count      (int)    — toggles counted in the last time window
   interaction_type (str)    — Physical | Automation | UI | Unknown
   user             (str)    — HA user name or "Unknown"
   monitored_entity (str)    — entity_id being tracked
   max_time_window  (int)    — configured window in seconds
 
 Interaction decoding — based on context fields of the new_state:
-  ┌──────────────┬───────────┬──────────┐
-  │ Interaction  │ parent_id │ user_id  │
-  ├──────────────┼───────────┼──────────┤
-  │ Physical     │ None      │ None     │
-  │ Automation   │ set       │ None     │
-  │ UI           │ None      │ set      │
-  └──────────────┴───────────┴──────────┘
+  +--------------+-----------+---------+
+  | Interaction  | parent_id | user_id |
+  +--------------+-----------+---------+
+  | Physical     | None      | None    |
+  | Automation   | set       | None    |
+  | UI           | None      | set     |
+  +--------------+-----------+---------+
   Ref: https://data.home-assistant.io/docs/context/
   Ref: https://community.home-assistant.io/t/400352/8
 
 Key HA APIs used:
-  async_track_state_change_event — per-entity listener (replaces deprecated
-      async_track_state_change since HA 2024.5)
+  async_track_state_change_event — per-entity listener
       Ref: https://developers.home-assistant.io/blog/2024/04/13/deprecate_async_track_state_change/
-  async_call_later — one-shot timer for window reset
-  hass.auth.async_get_user — resolve user_id → display name
+  async_call_later — one-shot timer for window expiry
+  hass.auth.async_get_user — resolve user_id to display name
 """
 
 from __future__ import annotations
@@ -61,6 +63,7 @@ from homeassistant.helpers.event import (
 from .const import (
     CONF_ENTITY_ID,
     CONF_MAX_TIME,
+    CONF_NAME,
     DEFAULT_MAX_TIME,
     INTERACTION_AUTOMATION,
     INTERACTION_PHYSICAL,
@@ -83,9 +86,10 @@ async def async_setup_entry(
     """Create the binary sensor entity for this config entry."""
     entity_id: str = entry.data[CONF_ENTITY_ID]
     max_time: int = entry.data.get(CONF_MAX_TIME, DEFAULT_MAX_TIME)
+    name: str = entry.data.get(CONF_NAME, entity_id)
 
     async_add_entities(
-        [SwitchInteractionBinarySensor(hass, entry, entity_id, max_time)],
+        [SwitchInteractionBinarySensor(hass, entry, entity_id, max_time, name)],
         # No initial update needed — sensor starts idle (off)
         update_before_add=False,
     )
@@ -94,14 +98,16 @@ async def async_setup_entry(
 class SwitchInteractionBinarySensor(BinarySensorEntity):
     """Binary sensor that tracks switch/light interaction details.
 
+    Attributes are STATIC/PERSISTENT: they always reflect the last
+    interaction and are never cleared.  Only updated on new toggles.
+
     Lifecycle:
-      __init__           → store config, set initial state
-      async_added_to_hass → subscribe to state_changed events
-      (async_on_remove)  → auto-unsubscribe on unload
+      __init__            -> store config, set initial state
+      async_added_to_hass -> subscribe to state_changed events
+      (async_on_remove)   -> auto-unsubscribe on unload
     """
 
     # -- Entity registration hints ------------------------------------------
-    _attr_has_entity_name = True   # name is relative to device/entry
     _attr_should_poll = False      # event-driven, no polling needed
 
     def __init__(
@@ -110,6 +116,7 @@ class SwitchInteractionBinarySensor(BinarySensorEntity):
         entry: ConfigEntry,
         monitored_entity_id: str,
         max_time: int,
+        name: str,
     ) -> None:
         """Initialise internal state.
 
@@ -118,22 +125,29 @@ class SwitchInteractionBinarySensor(BinarySensorEntity):
             entry: The ConfigEntry that created this sensor.
             monitored_entity_id: The switch.* / light.* entity to watch.
             max_time: Click-counting window in seconds.
+            name: User-chosen name for this sensor.
         """
         # --- Monitored entity config ---------------------------------------
         self._monitored_entity_id = monitored_entity_id
         self._max_time = max_time
 
         # --- Click / interaction tracking ----------------------------------
+        # These are PERSISTENT: they keep the last interaction values
+        # and are only overwritten by a new toggle event.
         self._click_count: int = 0
         self._interaction_type: str = INTERACTION_UNKNOWN
         self._user_name: str = "Unknown"
 
+        # --- Window state --------------------------------------------------
+        # True while the click-counting window is open (sensor = on)
+        self._window_active: bool = False
         # Handle returned by async_call_later(); call it to cancel the timer
         self._cancel_reset: callback | None = None
 
         # --- Entity metadata -----------------------------------------------
+        # Use user-chosen name directly (no has_entity_name)
         self._attr_unique_id = f"{entry.entry_id}_interaction"
-        self._attr_name = "Interaction"
+        self._attr_name = name
         self._attr_icon = "mdi:gesture-tap"
 
     # -----------------------------------------------------------------------
@@ -142,14 +156,17 @@ class SwitchInteractionBinarySensor(BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Binary state: on while the click window is open."""
-        return self._click_count > 0
+        return self._window_active
 
     @property
     def extra_state_attributes(self) -> dict:
         """Expose click count, interaction type and user as attributes.
 
-        These can be read in automations via e.g.:
-          {{ state_attr('binary_sensor.xxx_interaction', 'click_count') }}
+        IMPORTANT: These are PERSISTENT — they always reflect the last
+        interaction.  They are NOT cleared when the window expires.
+
+        Readable in automations via e.g.:
+          {{ state_attr('binary_sensor.int_luce_cucina', 'click_count') }}
         """
         return {
             "click_count": self._click_count,
@@ -192,17 +209,17 @@ class SwitchInteractionBinarySensor(BinarySensorEntity):
         Steps:
           1. Ignore attribute-only updates (state unchanged).
           2. Decode interaction type from context.parent_id / user_id.
-          3. Increment click counter.
-          4. (Re)start the reset timer.
+          3. Increment click counter (or start new count if window closed).
+          4. (Re)start the window expiry timer.
         """
         new_state = event.data.get("new_state")
         old_state = event.data.get("old_state")
 
-        # Guard: entity added/removed → one side is None
+        # Guard: entity added/removed -> one side is None
         if new_state is None or old_state is None:
             return
 
-        # Guard: only count real toggles (on↔off), skip attribute updates
+        # Guard: only count real toggles (on<->off), skip attribute updates
         if new_state.state == old_state.state:
             return
 
@@ -243,21 +260,29 @@ class SwitchInteractionBinarySensor(BinarySensorEntity):
             )
             user_name = user_id
 
-        # --- Update state --------------------------------------------------
+        # --- Update PERSISTENT attributes ----------------------------------
+        # If the window was closed, start a new click count
+        if not self._window_active:
+            self._click_count = 1
+        else:
+            self._click_count += 1
+
         self._interaction_type = interaction_type
         self._user_name = user_name
-        self._click_count += 1
 
-        # --- (Re)start the reset timer -------------------------------------
+        # --- Mark window as active (sensor = on) ---------------------------
+        self._window_active = True
+
+        # --- (Re)start the window expiry timer -----------------------------
         # Cancel previous timer if the user clicks again within the window
         if self._cancel_reset is not None:
             self._cancel_reset()
 
-        # Schedule _async_reset after max_time seconds
+        # Schedule _async_window_expired after max_time seconds
         self._cancel_reset = async_call_later(
             self.hass,
             timedelta(seconds=self._max_time),
-            self._async_reset,
+            self._async_window_expired,
         )
 
         # Push new state to HA state machine
@@ -286,14 +311,14 @@ class SwitchInteractionBinarySensor(BinarySensorEntity):
         self.async_write_ha_state()
 
     @callback
-    def _async_reset(self, _now) -> None:
-        """Reset all counters after the click window expires.
+    def _async_window_expired(self, _now) -> None:
+        """Handle click window expiry.
 
-        Called by async_call_later() when max_time seconds have elapsed
-        since the last toggle.  Sensor transitions from on → off.
+        Only the binary state changes (on -> off).
+        Attributes are PRESERVED — they keep the values from the last
+        interaction until the next toggle overwrites them.
         """
-        self._click_count = 0
-        self._interaction_type = INTERACTION_UNKNOWN
-        self._user_name = "Unknown"
+        self._window_active = False
         self._cancel_reset = None
+        # Attributes (click_count, interaction_type, user) are NOT touched
         self.async_write_ha_state()

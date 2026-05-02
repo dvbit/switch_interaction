@@ -12,6 +12,16 @@
           "entity_id": "Die zu verfolgende Switch- oder Light-Entität.",
           "max_time": "Maximale Zeit (Sekunden) zwischen Klicks für Mehrfachklick-Erkennung."
         }
+      },
+      "name": {
+        "title": "Sensorname",
+        "description": "Wählen Sie einen Namen für den Binärsensor.",
+        "data": {
+          "name": "Sensorname"
+        },
+        "data_description": {
+          "name": "Name für die Binary-Sensor-Entität."
+        }
       }
     },
     "error": {
