@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sensore Interazione Interruttore",
+        "description": "Seleziona un'entità switch o light da monitorare per il tipo di interazione e il conteggio dei click.",
+        "data": {
+          "entity_id": "Entità da monitorare",
+          "max_time": "Finestra temporale conteggio click"
+        },
+        "data_description": {
+          "entity_id": "L'entità switch o light da tracciare.",
+          "max_time": "Tempo massimo (secondi) tra i click per considerarli come multi-click."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "Entità non trovata. Seleziona un'entità valida."
+    },
+    "abort": {
+      "already_configured": "Questa entità è già monitorata."
+    }
+  }
+}

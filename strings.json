@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Switch Interaction Sensor",
+        "description": "Select a switch or light entity to monitor for interaction type and click counting.",
+        "data": {
+          "entity_id": "Entity to monitor",
+          "max_time": "Click counting time window"
+        },
+        "data_description": {
+          "entity_id": "The switch or light entity to track.",
+          "max_time": "Maximum time (seconds) between clicks to count as multi-click."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "Entity not found. Please select a valid entity."
+    },
+    "abort": {
+      "already_configured": "This entity is already being monitored."
+    }
+  }
+}

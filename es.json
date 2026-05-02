@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sensor de interacción de interruptor",
+        "description": "Seleccione una entidad switch o light para monitorear el tipo de interacción y el conteo de clics.",
+        "data": {
+          "entity_id": "Entidad a monitorear",
+          "max_time": "Ventana temporal de conteo de clics"
+        },
+        "data_description": {
+          "entity_id": "La entidad switch o light a rastrear.",
+          "max_time": "Tiempo máximo (segundos) entre clics para contar como multi-clic."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "Entidad no encontrada. Seleccione una entidad válida."
+    },
+    "abort": {
+      "already_configured": "Esta entidad ya está siendo monitoreada."
+    }
+  }
+}

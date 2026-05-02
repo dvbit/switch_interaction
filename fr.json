@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Capteur d'interaction interrupteur",
+        "description": "Sélectionnez une entité switch ou light à surveiller pour le type d'interaction et le comptage des clics.",
+        "data": {
+          "entity_id": "Entité à surveiller",
+          "max_time": "Fenêtre temporelle de comptage des clics"
+        },
+        "data_description": {
+          "entity_id": "L'entité switch ou light à suivre.",
+          "max_time": "Temps maximum (secondes) entre les clics pour compter comme multi-clic."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "Entité introuvable. Veuillez sélectionner une entité valide."
+    },
+    "abort": {
+      "already_configured": "Cette entité est déjà surveillée."
+    }
+  }
+}

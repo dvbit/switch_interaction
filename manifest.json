@@ -1,0 +1,10 @@
+{
+  "domain": "switch_interaction_sensor",
+  "name": "Switch Interaction Sensor",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/YOUR_USER/ha-switch-interaction-sensor",
+  "issue_tracker": "https://github.com/YOUR_USER/ha-switch-interaction-sensor/issues",
+  "iot_class": "local_push",
+  "version": "1.0.0"
+}

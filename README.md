@@ -1,89 +1,110 @@
-# Switch Interaction Tracker
+# Switch Interaction Sensor
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-A Home Assistant custom component that tracks interactions with switches, lights, and other entities. It distinguishes between physical presses, automation changes, and UI interactions, and counts clicks within a specified time window.
+Custom Home Assistant integration that monitors a **switch** or **light** entity and creates a **binary sensor** exposing:
 
-## Features
+| Attribute          | Type  | Description                                        |
+|--------------------|-------|----------------------------------------------------|
+| `click_count`      | int   | Number of toggles within the time window           |
+| `interaction_type` | str   | `Physical` · `Automation` · `UI` · `Unknown`       |
+| `user`             | str   | HA user name (UI) or `Unknown`                     |
+| `monitored_entity` | str   | The entity being tracked                           |
+| `max_time_window`  | int   | Configured window in seconds                       |
 
-*   **Interaction Type Detection**: Automatically detects the source of a state change:
-    *   `physical`: Triggered physically (e.g., wall switch, button).
-    *   `ui`: Triggered via the Home Assistant Dashboard.
-    *   `automation`: Triggered by an automation or script.
-*   **User Identification**: If triggered via the UI, it identifies the specific Home Assistant user.
-*   **Click Counting**: Counts the number of state changes (clicks) within a configurable time window (e.g., detecting double-taps).
-*   **Dedicated Sensors**: Creates a separate `binary_sensor` for each monitored entity that reports the interaction details.
+## How it works
 
-## Installation
+Every time the monitored entity changes state (`on` ↔ `off`), the integration inspects the **context** object on the `state_changed` event:
 
-### HACS (Recommended)
+| Interaction | `context.parent_id` | `context.user_id` |
+|-------------|---------------------|--------------------|
+| Physical    | `None`              | `None`             |
+| Automation  | set                 | `None`             |
+| UI          | `None`              | set                |
 
-1.  Open HACS in Home Assistant.
-2.  Go to **Integrations** > **Explore & Download Repositories**.
-3.  Search for **Switch Interaction Tracker**.
-4.  Download and restart Home Assistant.
+Reference: [HA Context docs](https://data.home-assistant.io/docs/context/) · [Community thread](https://community.home-assistant.io/t/work-with-triggered-by-in-automations/400352/8)
 
-### Manual
+The binary sensor turns **on** at the first click and stays on for `max_time` seconds after the **last** click, counting every toggle.  When the window expires the sensor goes **off** and all counters reset.
 
-1.  Copy the `switch_interaction` directory to your `custom_components` directory.
-2.  Restart Home Assistant.
+## Installation (HACS)
 
-## Configuration
+1. Open HACS → **Integrations** → **⋮** → **Custom repositories**.
+2. Add this repository URL, category **Integration**.
+3. Install **Switch Interaction Sensor**.
+4. Restart Home Assistant.
+5. Go to **Settings → Devices & Services → Add Integration → Switch Interaction Sensor**.
+6. Select the switch/light entity and the click time window (default: 3 s).
 
-1.  Go to **Settings** > **Devices & Services**.
-2.  Click **Add Integration**.
-3.  Search for **Switch Interaction Tracker**.
-4.  **Entities to monitor**: Select the entities (switches, lights, input_booleans, etc.) you wish to track.
-5.  **Max time**: Set the maximum time window (in seconds) to wait for additional clicks (Default: 5 seconds).
+## Manual installation
 
-### Options
+Copy the `custom_components/switch_interaction_sensor/` folder into your `<config>/custom_components/` directory and restart Home Assistant.
 
-You can modify the monitored entities and the time window later by clicking **Configure** on the integration entry in the Devices & Services page.
+## Usage examples
 
-## How it Works
-
-For every entity you monitor, a corresponding `binary_sensor` is created (e.g., `binary_sensor.interaction_switch_living_room`).
-
-1.  **Detection**: When the monitored entity changes state, the tracker starts a timer based on your "Max time" setting.
-2.  **Counting**: Any subsequent changes within this window are counted as additional clicks.
-3.  **Reporting**: Once the time window expires:
-    *   The binary sensor turns `on`.
-    *   The attributes are updated with the total `clicks`, `interaction` type, and `user`.
-    *   After a brief moment (0.1s), the sensor turns `off` automatically, ready for the next event.
-
-## Attributes
-
-The binary sensor exposes the following attributes when it activates:
-
-| Attribute | Description |
-| :--- | :--- |
-| `interaction` | The source of the action: `physical`, `ui`, `automation`, or `unknown`. |
-| `clicks` | The number of times the entity changed state within the time window. |
-| `user` | The name of the user (if `interaction` is `ui`), otherwise `unknown`. |
-| `monitored_entity` | The entity ID of the device being tracked. |
-| `last_changed` | The timestamp of the last detected change. |
-
-## Example Automation
-
-This example triggers an action only when a physical switch is toggled twice (Double Tap).
+### Double physical click → toggle a ceiling light
 
 ```yaml
-alias: "Living Room Double Tap"
-trigger:
-  - platform: state
-    entity_id: binary_sensor.interaction_switch_living_room
-    to: "on"
-condition:
-  - condition: state
-    entity_id: binary_sensor.interaction_switch_living_room
-    attribute: interaction
-    state: "physical"
-  - condition: state
-    entity_id: binary_sensor.interaction_switch_living_room
-    attribute: clicks
-    state: 2
-action:
-  - service: light.turn_on
-    target:
-      entity_id: light.bedroom
+automation:
+  - alias: "Double physical click toggles ceiling light"
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.my_switch_interaction
+        to: "off"
+    conditions:
+      - condition: template
+        value_template: >
+          {{ trigger.from_state.attributes.click_count == 2
+             and trigger.from_state.attributes.interaction_type == 'Physical' }}
+    actions:
+      - action: light.toggle
+        target:
+          entity_id: light.ceiling
 ```
+
+### Triple click → activate a scene
+
+```yaml
+automation:
+  - alias: "Triple click activates movie scene"
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.my_switch_interaction
+        to: "off"
+    conditions:
+      - condition: template
+        value_template: >
+          {{ trigger.from_state.attributes.click_count == 3
+             and trigger.from_state.attributes.interaction_type == 'Physical' }}
+    actions:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.movie_mode
+```
+
+### Notify when a specific user toggles a switch via UI
+
+```yaml
+automation:
+  - alias: "Notify admin on child toggle"
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.my_switch_interaction
+        to: "off"
+    conditions:
+      - condition: template
+        value_template: >
+          {{ trigger.from_state.attributes.interaction_type == 'UI'
+             and trigger.from_state.attributes.user == 'ChildUser' }}
+    actions:
+      - action: notify.mobile_app_admin
+        data:
+          message: "ChildUser toggled the switch!"
+```
+
+## Supported languages
+
+English · Italian · French · Spanish · German
+
+## License
+
+MIT

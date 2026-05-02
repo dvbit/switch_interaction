@@ -1,5 +1,5 @@
 {
-  "name": "Switch Interaction Tracker",
+  "name": "Switch Interaction Sensor",
   "render_readme": true,
-  "homeassistant": "2026.02.0"
+  "homeassistant": "2024.5.0"
 }

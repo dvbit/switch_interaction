@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Schalter-Interaktionssensor",
+        "description": "Wählen Sie eine Switch- oder Light-Entität zur Überwachung von Interaktionstyp und Klickzählung.",
+        "data": {
+          "entity_id": "Zu überwachende Entität",
+          "max_time": "Zeitfenster für Klickzählung"
+        },
+        "data_description": {
+          "entity_id": "Die zu verfolgende Switch- oder Light-Entität.",
+          "max_time": "Maximale Zeit (Sekunden) zwischen Klicks für Mehrfachklick-Erkennung."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "Entität nicht gefunden. Bitte wählen Sie eine gültige Entität."
+    },
+    "abort": {
+      "already_configured": "Diese Entität wird bereits überwacht."
+    }
+  }
+}
