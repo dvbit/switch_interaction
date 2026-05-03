@@ -2,19 +2,20 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-Custom Home Assistant integration that monitors a **switch** or **light** entity and creates a **binary sensor** exposing:
+Custom Home Assistant integration that monitors a **switch** or **light** entity and creates a **device** with four entities:
 
-| Attribute          | Type  | Description                                        |
-|--------------------|-------|----------------------------------------------------|
-| `click_count`      | int   | Number of toggles within the time window           |
-| `interaction_type` | str   | `Physical` · `Automation` · `UI` · `Unknown`       |
-| `user`             | str   | HA user name (UI) or `Unknown`                     |
-| `monitored_entity` | str   | The entity being tracked                           |
-| `max_time_window`  | int   | Configured window in seconds                       |
+| Entity              | Type          | Description                                      |
+|---------------------|---------------|--------------------------------------------------|
+| Window              | binary_sensor | `on` while the click window is active            |
+| Click Count         | sensor        | Number of toggles in the last window             |
+| Interaction Type    | sensor        | `Physical` · `Automation` · `UI` · `Unknown`     |
+| User                | sensor        | HA user name (UI) or `Unknown`                   |
+
+All sensor values are **persistent** — they always show the last interaction and are only updated on the next toggle.
 
 ## How it works
 
-Every time the monitored entity changes state (`on` ↔ `off`), the integration inspects the **context** object on the `state_changed` event:
+Every time the monitored entity changes state (`on` ↔ `off`), the integration inspects the **context** object:
 
 | Interaction | `context.parent_id` | `context.user_id` |
 |-------------|---------------------|--------------------|
@@ -24,77 +25,49 @@ Every time the monitored entity changes state (`on` ↔ `off`), the integration 
 
 Reference: [HA Context docs](https://data.home-assistant.io/docs/context/) · [Community thread](https://community.home-assistant.io/t/work-with-triggered-by-in-automations/400352/8)
 
-The binary sensor turns **on** at the first click and stays on for `max_time` seconds after the **last** click, counting every toggle.  When the window expires the sensor goes **off** and all counters reset.
-
 ## Installation (HACS)
 
-1. Open HACS → **Integrations** → **⋮** → **Custom repositories**.
-2. Add this repository URL, category **Integration**.
-3. Install **Switch Interaction Sensor**.
-4. Restart Home Assistant.
-5. Go to **Settings → Devices & Services → Add Integration → Switch Interaction Sensor**.
-6. Select the switch/light entity and the click time window (default: 3 s).
-
-## Manual installation
-
-Copy the `custom_components/switch_interaction_sensor/` folder into your `<config>/custom_components/` directory and restart Home Assistant.
+1. HACS → **Integrations** → **⋮** → **Custom repositories** → add this repo URL, category **Integration**.
+2. Install **Switch Interaction Sensor** and restart HA.
+3. **Settings → Devices & Services → Add Integration → Switch Interaction Sensor**.
+4. Select entity, time window, and device name (default: `int_<entity_name>`).
 
 ## Usage examples
 
-### Double physical click → toggle a ceiling light
+### Double physical click → toggle ceiling light
 
 ```yaml
 automation:
-  - alias: "Double physical click toggles ceiling light"
+  - alias: "Double physical click toggles ceiling"
     triggers:
       - trigger: state
-        entity_id: binary_sensor.my_switch_interaction
+        entity_id: binary_sensor.int_luce_cucina_window
         to: "off"
     conditions:
-      - condition: template
-        value_template: >
-          {{ trigger.from_state.attributes.click_count == 2
-             and trigger.from_state.attributes.interaction_type == 'Physical' }}
+      - condition: state
+        entity_id: sensor.int_luce_cucina_click_count
+        state: "2"
+      - condition: state
+        entity_id: sensor.int_luce_cucina_interaction_type
+        state: "Physical"
     actions:
       - action: light.toggle
         target:
           entity_id: light.ceiling
 ```
 
-### Triple click → activate a scene
+### Notify when a specific user toggles via UI
 
 ```yaml
 automation:
-  - alias: "Triple click activates movie scene"
+  - alias: "Notify on child toggle"
     triggers:
       - trigger: state
-        entity_id: binary_sensor.my_switch_interaction
-        to: "off"
+        entity_id: sensor.int_luce_cucina_interaction_type
     conditions:
-      - condition: template
-        value_template: >
-          {{ trigger.from_state.attributes.click_count == 3
-             and trigger.from_state.attributes.interaction_type == 'Physical' }}
-    actions:
-      - action: scene.turn_on
-        target:
-          entity_id: scene.movie_mode
-```
-
-### Notify when a specific user toggles a switch via UI
-
-```yaml
-automation:
-  - alias: "Notify admin on child toggle"
-    triggers:
-      - trigger: state
-        entity_id: binary_sensor.my_switch_interaction
-        to: "off"
-    conditions:
-      - condition: template
-        value_template: >
-          {{ trigger.from_state.attributes.interaction_type == 'UI'
-             and trigger.from_state.attributes.user == 'ChildUser' }}
+      - condition: state
+        entity_id: sensor.int_luce_cucina_user
+        state: "ChildUser"
     actions:
       - action: notify.mobile_app_admin
         data:
@@ -104,6 +77,24 @@ automation:
 ## Supported languages
 
 English · Italian · French · Spanish · German
+
+## Specification
+
+This integration was built to the following spec:
+
+```
+Given a switch or light entity associated with a physical switch,
+create a device with sensors exposing:
+
+- Click Count: number of toggles within a configurable time window
+- Interaction Type: Physical / Automation / UI
+- User: HA user name for UI interactions, Unknown otherwise
+
+Interaction decoding based on context object:
+  Physical:   parent_id=None,  user_id=None
+  Automation: parent_id!=None, user_id=None
+  UI:         parent_id=None,  user_id!=None
+```
 
 ## License
 

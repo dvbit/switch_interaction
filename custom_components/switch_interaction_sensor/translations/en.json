@@ -4,31 +4,17 @@
       "user": {
         "title": "Switch Interaction Sensor",
         "description": "Select a switch or light entity to monitor for interaction type and click counting.",
-        "data": {
-          "entity_id": "Entity to monitor",
-          "max_time": "Click counting time window"
-        },
-        "data_description": {
-          "entity_id": "The switch or light entity to track.",
-          "max_time": "Maximum time (seconds) between clicks to count as multi-click."
-        }
+        "data": { "entity_id": "Entity to monitor", "max_time": "Click counting time window" },
+        "data_description": { "entity_id": "The switch or light entity to track.", "max_time": "Maximum time (seconds) between clicks to count as multi-click." }
       },
       "name": {
         "title": "Sensor Name",
-        "description": "Choose a name for the binary sensor.",
-        "data": {
-          "name": "Sensor name"
-        },
-        "data_description": {
-          "name": "Name for the binary sensor entity."
-        }
+        "description": "Choose a name for the device and its sensors.",
+        "data": { "name": "Device name" },
+        "data_description": { "name": "Name for the device grouping all interaction sensors." }
       }
     },
-    "error": {
-      "entity_not_found": "Entity not found. Please select a valid entity."
-    },
-    "abort": {
-      "already_configured": "This entity is already being monitored."
-    }
+    "error": { "entity_not_found": "Entity not found. Please select a valid entity." },
+    "abort": { "already_configured": "This entity is already being monitored." }
   }
 }

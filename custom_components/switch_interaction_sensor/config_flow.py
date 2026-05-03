@@ -44,7 +44,6 @@ class SwitchInteractionSensorConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             entity_id = user_input[CONF_ENTITY_ID]
 
-            # One sensor per entity
             await self.async_set_unique_id(entity_id)
             self._abort_if_unique_id_configured()
 
@@ -93,7 +92,6 @@ class SwitchInteractionSensorConfigFlow(ConfigFlow, domain=DOMAIN):
                 data=self._user_input,
             )
 
-        # Build default name from entity friendly_name
         entity_id = self._user_input[CONF_ENTITY_ID]
         state = self.hass.states.get(entity_id)
         friendly = (
@@ -101,7 +99,6 @@ class SwitchInteractionSensorConfigFlow(ConfigFlow, domain=DOMAIN):
             if state
             else entity_id
         )
-        # Slugify: lowercase, replace non-alnum with _, strip edges
         slug = re.sub(r"[^a-z0-9]+", "_", friendly.lower()).strip("_")
         default_name = f"{DEFAULT_NAME_PREFIX}{slug}"
 

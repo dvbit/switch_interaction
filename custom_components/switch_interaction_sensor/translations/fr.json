@@ -4,31 +4,17 @@
       "user": {
         "title": "Capteur d'interaction interrupteur",
         "description": "Sélectionnez une entité switch ou light à surveiller pour le type d'interaction et le comptage des clics.",
-        "data": {
-          "entity_id": "Entité à surveiller",
-          "max_time": "Fenêtre temporelle de comptage des clics"
-        },
-        "data_description": {
-          "entity_id": "L'entité switch ou light à suivre.",
-          "max_time": "Temps maximum (secondes) entre les clics pour compter comme multi-clic."
-        }
+        "data": { "entity_id": "Entité à surveiller", "max_time": "Fenêtre temporelle de comptage des clics" },
+        "data_description": { "entity_id": "L'entité switch ou light à suivre.", "max_time": "Temps maximum (secondes) entre les clics pour compter comme multi-clic." }
       },
       "name": {
-        "title": "Nom du capteur",
-        "description": "Choisissez un nom pour le capteur binaire.",
-        "data": {
-          "name": "Nom du capteur"
-        },
-        "data_description": {
-          "name": "Nom de l'entité binary sensor."
-        }
+        "title": "Nom de l'appareil",
+        "description": "Choisissez un nom pour l'appareil et ses capteurs.",
+        "data": { "name": "Nom de l'appareil" },
+        "data_description": { "name": "Nom de l'appareil regroupant tous les capteurs d'interaction." }
       }
     },
-    "error": {
-      "entity_not_found": "Entité introuvable. Veuillez sélectionner une entité valide."
-    },
-    "abort": {
-      "already_configured": "Cette entité est déjà surveillée."
-    }
+    "error": { "entity_not_found": "Entité introuvable. Veuillez sélectionner une entité valide." },
+    "abort": { "already_configured": "Cette entité est déjà surveillée." }
   }
 }

@@ -4,31 +4,17 @@
       "user": {
         "title": "Schalter-Interaktionssensor",
         "description": "Wählen Sie eine Switch- oder Light-Entität zur Überwachung von Interaktionstyp und Klickzählung.",
-        "data": {
-          "entity_id": "Zu überwachende Entität",
-          "max_time": "Zeitfenster für Klickzählung"
-        },
-        "data_description": {
-          "entity_id": "Die zu verfolgende Switch- oder Light-Entität.",
-          "max_time": "Maximale Zeit (Sekunden) zwischen Klicks für Mehrfachklick-Erkennung."
-        }
+        "data": { "entity_id": "Zu überwachende Entität", "max_time": "Zeitfenster für Klickzählung" },
+        "data_description": { "entity_id": "Die zu verfolgende Switch- oder Light-Entität.", "max_time": "Maximale Zeit (Sekunden) zwischen Klicks für Mehrfachklick-Erkennung." }
       },
       "name": {
-        "title": "Sensorname",
-        "description": "Wählen Sie einen Namen für den Binärsensor.",
-        "data": {
-          "name": "Sensorname"
-        },
-        "data_description": {
-          "name": "Name für die Binary-Sensor-Entität."
-        }
+        "title": "Gerätename",
+        "description": "Wählen Sie einen Namen für das Gerät und seine Sensoren.",
+        "data": { "name": "Gerätename" },
+        "data_description": { "name": "Name des Geräts, das alle Interaktionssensoren gruppiert." }
       }
     },
-    "error": {
-      "entity_not_found": "Entität nicht gefunden. Bitte wählen Sie eine gültige Entität."
-    },
-    "abort": {
-      "already_configured": "Diese Entität wird bereits überwacht."
-    }
+    "error": { "entity_not_found": "Entität nicht gefunden. Bitte wählen Sie eine gültige Entität." },
+    "abort": { "already_configured": "Diese Entität wird bereits überwacht." }
   }
 }

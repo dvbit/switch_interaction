@@ -15,12 +15,12 @@
       },
       "name": {
         "title": "Sensor Name",
-        "description": "Choose a name for the binary sensor.",
+        "description": "Choose a name for the device and its sensors.",
         "data": {
-          "name": "Sensor name"
+          "name": "Device name"
         },
         "data_description": {
-          "name": "Name for the binary sensor entity."
+          "name": "Name for the device grouping all interaction sensors."
         }
       }
     },
