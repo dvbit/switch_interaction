@@ -1,10 +1,10 @@
 {
   "domain": "switch_interaction_sensor",
   "name": "Switch Interaction Sensor",
-  "codeowners": [],
+  "codeowners": ["@dvbit"],
   "config_flow": true,
-  "documentation": "https://github.com/YOUR_USER/ha-switch-interaction-sensor",
-  "issue_tracker": "https://github.com/YOUR_USER/ha-switch-interaction-sensor/issues",
+  "documentation": "https://github.com/dvbit/switch_interaction",
+  "issue_tracker": "https://github.com/dvbit/switch_interaction/issues",
   "iot_class": "local_push",
-  "version": "1.0.0"
+  "version": "1.1.0"
 }
